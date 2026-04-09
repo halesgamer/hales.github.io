@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HALES</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#00ff41;--g2:#00c832;--g3:#008f20;--g4:#004f10;
+  --bg:#020a03;--bg2:#030e04;--bg3:#041206;--bg4:#061808;
+  --card:rgba(0,255,65,0.04);
+  --border:rgba(0,255,65,0.15);--border-h:rgba(0,255,65,0.5);
+  --glow:rgba(0,255,65,0.15);--glow-s:rgba(0,255,65,0.35);
+  --text:#ccffcc;--text-m:#4daa5a;--text-d:#1a4d22;
+  --red:#ff4444;--amber:#ffbb00;
+  --mono:'Share Tech Mono',monospace;
+  --head:'Orbitron',sans-serif;
+  --body:'Exo 2',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden}
+
+/* SCANLINES */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);pointer-events:none;z-index:9999;animation:scanMove 10s linear infinite}
+@keyframes scanMove{from{background-position:0 0}to{background-position:0 100vh}}
+
+/* GRID */
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,65,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,65,0.03) 1px,transparent 1px);background-size:40px 40px;animation:gridScroll 20s linear infinite;pointer-events:none;z-index:0}
+@keyframes gridScroll{from{transform:translateY(0)}to{transform:translateY(40px)}}
+
+/* PARTICLES */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.pt{position:absolute;background:var(--g);border-radius:50%;opacity:0;animation:ptFloat linear infinite}
+@keyframes ptFloat{0%{transform:translateY(100vh) scale(0);opacity:0}5%{opacity:.7}90%{opacity:.2}100%{transform:translateY(-10px) scale(1.2);opacity:0}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(2,10,3,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--head);font-size:20px;font-weight:900;color:var(--g);text-decoration:none;letter-spacing:6px;animation:logoPulse 3s ease infinite}
+@keyframes logoPulse{0%,100%{text-shadow:0 0 20px var(--glow-s)}50%{text-shadow:0 0 40px var(--g),0 0 80px var(--glow-s)}}
+.nav-links{display:flex;gap:26px;align-items:center}
+.nav-links a{font-family:var(--mono);font-size:10px;color:var(--text-m);text-decoration:none;letter-spacing:2px;transition:color .2s;position:relative}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:100%;height:1px;background:var(--g);transition:right .25s}
+.nav-links a:hover{color:var(--g)}
+.nav-links a:hover::after{right:0}
+.nav-join{font-family:var(--mono)!important;font-size:10px!important;color:var(--g)!important;border:1px solid var(--border-h);padding:7px 16px;border-radius:2px;transition:all .2s!important}
+.nav-join:hover{background:var(--glow)!important;box-shadow:0 0 16px var(--glow)}
+
+/* HAMBURGER */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;z-index:1001;-webkit-tap-highlight-color:transparent}
+.hamburger span{display:block;width:24px;height:2px;background:var(--g);transition:all .3s;border-radius:1px}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* MOBILE DRAWER */
+.nav-drawer{position:fixed;top:60px;left:0;right:0;background:rgba(2,10,3,0.98);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:20px 28px;flex-direction:column;gap:4px;z-index:999;transform:translateY(-8px);opacity:0;pointer-events:none;transition:all .3s;display:flex}
+.nav-drawer.open{transform:translateY(0);opacity:1;pointer-events:all}
+.nav-drawer a{font-family:var(--mono);font-size:12px;color:var(--text-m);text-decoration:none;letter-spacing:2px;padding:13px 0;border-bottom:1px solid rgba(0,255,65,0.07);transition:color .2s;display:block}
+.nav-drawer a:last-child{border-bottom:none}
+.nav-drawer a:hover{color:var(--g)}
+
+/* WRAP */
+.wrap{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:0 24px 100px}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 0 60px}
+.hero-tag{font-family:var(--mono);font-size:10px;color:var(--text-m);letter-spacing:4px;margin-bottom:18px;opacity:0;animation:fadeUp .6s ease .2s both}
+.hero-title{font-family:var(--head);font-size:clamp(52px,11vw,120px);font-weight:900;color:var(--g);letter-spacing:clamp(4px,2vw,10px);line-height:1;text-shadow:0 0 60px var(--glow-s),0 0 120px var(--glow);margin-bottom:8px;opacity:0;animation:fadeUp .6s ease .4s both,titleFlicker 6s ease 2s infinite}
+@keyframes titleFlicker{0%,95%,100%{opacity:1}96%{opacity:.85}97%{opacity:1}98%{opacity:.9}}
+.hero-sub{font-family:var(--mono);font-size:clamp(9px,1.5vw,13px);color:var(--text-m);letter-spacing:clamp(1px,0.5vw,3px);margin-bottom:36px;opacity:0;animation:fadeUp .6s ease .6s both}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .6s ease .8s both}
+.btn{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:12px 22px;border-radius:2px;cursor:pointer;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn-primary{background:var(--g);color:#020a03;border:1px solid var(--g);font-weight:700;box-shadow:0 0 20px var(--glow)}
+.btn-primary:hover,.btn-primary:active{background:#6effaa;box-shadow:0 0 40px var(--g);transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--g);border:1px solid var(--border-h)}
+.btn-outline:hover,.btn-outline:active{background:var(--glow);box-shadow:0 0 20px var(--glow);transform:translateY(-2px)}
+.btn-discord{background:rgba(88,101,242,.12);color:#7289da;border:1px solid rgba(88,101,242,.4)}
+.btn-discord:hover,.btn-discord:active{background:rgba(88,101,242,.25);box-shadow:0 0 20px rgba(88,101,242,.3);transform:translateY(-2px)}
+.hero-stats{display:flex;gap:32px;margin-top:52px;opacity:0;animation:fadeUp .6s ease 1s both;flex-wrap:wrap;justify-content:center}
+.hero-stat{text-align:center}
+.hero-stat-val{font-family:var(--head);font-size:clamp(20px,4vw,26px);color:var(--g);font-weight:700;text-shadow:0 0 15px var(--glow-s)}
+.hero-stat-lbl{font-family:var(--mono);font-size:8px;color:var(--text-d);letter-spacing:2px;margin-top:4px}
+.glitch-line{width:200px;height:1px;background:linear-gradient(90deg,transparent,var(--g),transparent);margin:24px auto;opacity:0;animation:fadeUp .6s ease .7s both,glitchLine 4s ease 2s infinite}
+@keyframes glitchLine{0%,90%,100%{transform:scaleX(1);opacity:1}92%{transform:scaleX(.3) translateX(30px);opacity:.5}94%{transform:scaleX(1.2);opacity:1}}
+
+/* SECTION */
+.sec-head{text-align:center;margin-bottom:40px}
+.sec-tag{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:4px;margin-bottom:10px}
+.sec-title{font-family:var(--head);font-size:clamp(16px,4vw,28px);font-weight:700;color:var(--g);letter-spacing:4px;text-shadow:0 0 30px var(--glow)}
+.sec-div{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--g),transparent);opacity:.2}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* DISCORD */
+#discord{padding:80px 0}
+.discord-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.d-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:30px;transition:all .3s;position:relative;overflow:hidden}
+.d-card::before{content:'';position:absolute;top:-1px;left:20px;right:20px;height:2px;background:linear-gradient(90deg,transparent,var(--g),transparent);opacity:0;transition:opacity .3s}
+.d-card:hover{border-color:var(--border-h);box-shadow:0 0 40px var(--glow);transform:translateY(-3px)}
+.d-card:hover::before{opacity:1}
+.d-icon{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;font-size:20px}
+.d-icon.green{background:rgba(0,255,65,.1);border:1px solid var(--border)}
+.d-icon.purple{background:rgba(88,101,242,.1);border:1px solid rgba(88,101,242,.3)}
+.d-label{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:3px;margin-bottom:6px}
+.d-title{font-family:var(--head);font-size:13px;color:var(--g);font-weight:700;letter-spacing:2px;margin-bottom:10px}
+.d-desc{font-size:12px;color:var(--text-m);line-height:1.75;margin-bottom:18px}
+.bot-features{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:12px 0}
+.bot-feat{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:7px 8px;font-family:var(--mono);font-size:8px;color:var(--text-m);display:flex;align-items:center;gap:5px}
+.bot-feat span{color:var(--g)}
+.d-owner{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:11px 14px;display:flex;align-items:center;gap:11px;margin-top:14px}
+.d-owner-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--g3),var(--g));display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:12px;font-weight:700;color:#020a03;flex-shrink:0}
+.d-owner-name{font-family:var(--mono);font-size:11px;color:var(--g)}
+.d-owner-role{font-size:10px;color:var(--text-d);margin-top:2px}
+.d-online{width:9px;height:9px;border-radius:50%;background:var(--g);box-shadow:0 0 7px var(--g);animation:pulse 2s ease infinite;margin-left:auto;flex-shrink:0}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.7}}
+.srv-features{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.srv-feat{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-m)}
+.srv-feat span{color:var(--g)}
+.inv-code{margin-top:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:1px;text-align:center}
+
+/* MUSIC */
+#music{padding:80px 0}
+.music-wrap{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;position:relative}
+.music-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(0,255,65,.05),transparent);pointer-events:none}
+
+.visualizer{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:72px;padding:0 32px;border-bottom:1px solid var(--border);background:var(--bg2);overflow:hidden}
+.vis-bar{flex:1;max-width:14px;background:linear-gradient(to top,var(--g3),var(--g));border-radius:3px 3px 0 0;height:4px;opacity:.6;will-change:height}
+
+.player-body{padding:32px 40px 36px}
+.track-info{text-align:center;margin-bottom:28px}
+.track-now{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:4px;margin-bottom:10px}
+.track-name{font-family:var(--head);font-size:clamp(13px,3vw,20px);font-weight:700;color:var(--g);letter-spacing:3px;margin-bottom:4px;text-shadow:0 0 20px var(--glow-s)}
+.track-artist{font-family:var(--mono);font-size:10px;color:var(--text-m);letter-spacing:2px}
+.track-badge{display:inline-block;margin-top:9px;padding:3px 12px;border:1px solid rgba(0,255,65,.3);border-radius:2px;font-family:var(--mono);font-size:8px;color:var(--g);letter-spacing:2px}
+
+.progress-area{margin-bottom:22px}
+.progress-track{height:5px;background:var(--bg4);border-radius:3px;cursor:pointer;position:relative;transition:height .15s}
+.progress-track:hover{height:7px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--g3),var(--g));width:0%;border-radius:3px;transition:width .3s linear;position:relative}
+.progress-fill::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:13px;height:13px;background:var(--g);border-radius:50%;box-shadow:0 0 8px var(--g);opacity:0;transition:opacity .2s}
+.progress-track:hover .progress-fill::after{opacity:1}
+.progress-times{display:flex;justify-content:space-between;margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--text-d)}
+
+.controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:26px}
+.ctrl-btn{background:none;border:none;cursor:pointer;color:var(--text-m);transition:all .2s;padding:7px;border-radius:2px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.ctrl-btn:hover,.ctrl-btn.on{color:var(--g)}
+.ctrl-btn svg{width:20px;height:20px;fill:currentColor}
+
+.play-btn{width:68px;height:68px;border-radius:50%;background:var(--g);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;position:relative;box-shadow:0 0 30px var(--glow-s),0 0 60px var(--glow);-webkit-tap-highlight-color:transparent}
+.play-btn::before,.play-btn::after{content:'';position:absolute;border-radius:50%;border:1px solid rgba(0,255,65,.3)}
+.play-btn::before{inset:-8px;animation:rippleOut 2s ease infinite}
+.play-btn::after{inset:-18px;border-color:rgba(0,255,65,.15);animation:rippleOut 2s ease .7s infinite}
+@keyframes rippleOut{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.1);opacity:0}}
+.play-btn:hover{background:#6effaa;box-shadow:0 0 50px var(--g),0 0 100px var(--glow-s);transform:scale(1.07)}
+.play-btn:active{transform:scale(.95)}
+.play-btn svg{width:26px;height:26px;fill:#020a03;margin-left:3px}
+.play-btn.playing svg{margin-left:0}
+
+.vol-row{display:flex;align-items:center;gap:12px;justify-content:center}
+.vol-icon{font-size:13px;color:var(--text-d)}
+.vol-slider{-webkit-appearance:none;appearance:none;width:130px;height:3px;border-radius:2px;background:var(--bg4);outline:none;cursor:pointer}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--g);cursor:pointer;box-shadow:0 0 6px var(--glow-s)}
+.vol-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--g);cursor:pointer;border:none}
+
+.track-list{border-top:1px solid var(--border);padding:22px 40px 28px}
+.track-list-head{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:3px;margin-bottom:12px}
+.track-item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:3px;cursor:pointer;transition:all .2s;border:1px solid transparent;-webkit-tap-highlight-color:transparent}
+.track-item:hover,.track-item.active{background:rgba(0,255,65,.05);border-color:var(--border)}
+.track-item.active .ti-name{color:var(--g)}
+.ti-dot{width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 5px var(--g);flex-shrink:0;opacity:0;animation:pulse 1.5s ease infinite}
+.track-item.active .ti-dot{opacity:1}
+.ti-num{font-family:var(--mono);font-size:9px;color:var(--text-d);width:18px;text-align:center;flex-shrink:0}
+.track-item.active .ti-num{color:var(--g)}
+.ti-info{flex:1;min-width:0}
+.ti-name{font-size:12px;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti-sub{font-family:var(--mono);font-size:9px;color:var(--text-d);margin-top:2px}
+
+/* FEATURES */
+#features{padding:80px 0}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:24px;transition:all .3s;position:relative;overflow:hidden}
+.feat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--g),transparent);transform:scaleX(0);transition:transform .3s}
+.feat-card:hover{border-color:var(--border-h);box-shadow:0 8px 40px var(--glow);transform:translateY(-4px)}
+.feat-card:hover::after{transform:scaleX(1)}
+.feat-num{font-family:var(--head);font-size:9px;color:var(--text-d);letter-spacing:3px;margin-bottom:12px}
+.feat-icon{font-size:24px;margin-bottom:10px}
+.feat-title{font-family:var(--head);font-size:11px;color:var(--g);letter-spacing:2px;margin-bottom:8px}
+.feat-desc{font-size:12px;color:var(--text-m);line-height:1.7}
+
+/* ABOUT */
+#about{padding:80px 0}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.about-text p{font-size:13px;color:var(--text-m);line-height:1.9;margin-bottom:14px}
+.terminal-box{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.terminal-top{background:var(--bg4);padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border)}
+.tdot{width:10px;height:10px;border-radius:50%}
+.tdot.r{background:#ff5f56}.tdot.y{background:#ffbd2e}.tdot.gr{background:#27c93f}
+.t-title{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:2px;margin-left:8px}
+.terminal-body{padding:20px}
+.tline{font-family:var(--mono);font-size:11px;line-height:2.1;display:block}
+.tline .prompt{color:var(--g)}.tline .out{color:var(--text-m)}.tline .hi{color:var(--g)}
+.tcursor{display:inline-block;width:8px;height:13px;background:var(--g);vertical-align:middle;animation:blink 1s step-end infinite;margin-left:3px}
+
+/* FOOTER */
+footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:26px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.footer-logo{font-family:var(--head);font-size:14px;font-weight:900;color:var(--g);letter-spacing:5px}
+.footer-text{font-family:var(--mono);font-size:9px;color:var(--text-d);letter-spacing:1px;text-align:center}
+.footer-links{display:flex;gap:16px;flex-wrap:wrap}
+.footer-links a{font-family:var(--mono);font-size:9px;color:var(--text-m);text-decoration:none;letter-spacing:1px;transition:color .2s}
+.footer-links a:hover{color:var(--g)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .discord-grid{grid-template-columns:1fr}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .about-grid{grid-template-columns:1fr}
+}
+@media(max-width:660px){
+  nav{padding:0 18px}
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .wrap{padding:0 15px 80px}
+  #hero{padding:70px 0 40px}
+  .hero-title{letter-spacing:3px}
+  .hero-btns{gap:10px}
+  .hero-stats{gap:20px}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .player-body{padding:22px 18px 26px}
+  .visualizer{padding:0 16px;gap:2px;height:56px}
+  .vis-bar{max-width:10px}
+  .track-list{padding:18px 18px 22px}
+  .controls{gap:12px}
+  .play-btn{width:60px;height:60px}
+  .play-btn svg{width:22px;height:22px}
+  .vol-slider{width:100px}
+  .bot-features{grid-template-columns:1fr 1fr}
+  footer{flex-direction:column;align-items:center;text-align:center;padding:22px 18px}
+  .footer-links{justify-content:center}
+}
+@media(max-width:420px){
+  .hero-title{font-size:46px!important}
+  .feat-grid{grid-template-columns:1fr}
+  .hero-stats{gap:16px}
+  .btn{padding:10px 16px;font-size:9px}
+}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#hero" class="nav-logo">HALES</a>
+  <div class="nav-links">
+    <a href="#discord">DISCORD</a>
+    <a href="#music">MUSIC</a>
+    <a href="#features">FEATURES</a>
+    <a href="#about">ABOUT</a>
+    <a href="https://discord.gg/FRFUwvKpxG" class="nav-join" target="_blank">JOIN ▶</a>
+  </div>
+  <button class="hamburger" id="ham" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-drawer" id="drawer">
+  <a href="#discord" onclick="closeMenu()">◈ DISCORD</a>
+  <a href="#music" onclick="closeMenu()">◈ MUSIC</a>
+  <a href="#features" onclick="closeMenu()">◈ FEATURES</a>
+  <a href="#about" onclick="closeMenu()">◈ ABOUT</a>
+  <a href="https://discord.com/api/oauth2/authorize?client_id=1482322426217103381&permissions=8&scope=bot%20applications.commands" target="_blank" onclick="closeMenu()">⚡ ADD BOT</a>
+  <a href="https://discord.gg/FRFUwvKpxG" target="_blank" onclick="closeMenu()">🎮 JOIN SERVER</a>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-tag">// WELCOME TO THE HUB</div>
+    <h1 class="hero-title">HALES</h1>
+    <div class="glitch-line"></div>
+    <p class="hero-sub">DISCORD BOT &nbsp;•&nbsp; COMMUNITY &nbsp;•&nbsp; MUSIC</p>
+    <div class="hero-btns">
+      <a href="https://discord.com/api/oauth2/authorize?client_id=1482322426217103381&permissions=8&scope=bot%20applications.commands" target="_blank" class="btn btn-primary">⚡ ADD BOT</a>
+      <a href="https://discord.gg/FRFUwvKpxG" target="_blank" class="btn btn-discord">🎮 JOIN SERVER</a>
+      <a href="#music" class="btn btn-outline">🎵 PLAY MUSIC</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">50+</div><div class="hero-stat-lbl">BOT COMMANDS</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">UPTIME</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">FREE</div><div class="hero-stat-lbl">FOREVER</div></div>
+    </div>
+  </section>
+
+  <div class="sec-div"></div>
+
+  <!-- DISCORD -->
+  <section id="discord">
+    <div class="sec-head reveal">
+      <div class="sec-tag">// COMMUNITY</div>
+      <div class="sec-title">DISCORD</div>
+    </div>
+    <div class="discord-grid">
+
+      <div class="d-card reveal">
+        <div class="d-icon green">🤖</div>
+        <div class="d-label">// HALES BOT</div>
+        <div class="d-title">ADD TO YOUR SERVER</div>
+        <div class="d-desc">A powerful Discord bot with full administrator access. Moderation, utilities, fun commands, and more — all in one bot built for your community.</div>
+        <div class="bot-features">
+          <div class="bot-feat"><span>⚔</span> Moderation</div>
+          <div class="bot-feat"><span>🎵</span> Music</div>
+          <div class="bot-feat"><span>🎮</span> Games</div>
+          <div class="bot-feat"><span>📊</span> Stats</div>
+          <div class="bot-feat"><span>🛡</span> Auto-Mod</div>
+          <div class="bot-feat"><span>⚙</span> Utility</div>
+        </div>
+        <a href="https://discord.com/api/oauth2/authorize?client_id=1482322426217103381&permissions=8&scope=bot%20applications.commands" target="_blank" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px">⚡ INVITE HALES BOT</a>
+        <div class="d-owner">
+          <div class="d-owner-av">G</div>
+          <div style="flex:1">
+            <div class="d-owner-name">gamer_op_ever</div>
+            <div class="d-owner-role">Bot Developer & Owner</div>
+          </div>
+          <div class="d-online"></div>
+        </div>
+      </div>
+
+      <div class="d-card reveal">
+        <div class="d-icon purple">🏠</div>
+        <div class="d-label">// SUPPORT SERVER</div>
+        <div class="d-title">JOIN THE COMMUNITY</div>
+        <div class="d-desc">Join the official Hales Discord server for support, updates, announcements, and to hang out with the community. Help is always available.</div>
+        <div class="srv-features">
+          <div class="srv-feat"><span>▸</span> 24/7 Bot Support</div>
+          <div class="srv-feat"><span>▸</span> Announcements & Updates</div>
+          <div class="srv-feat"><span>▸</span> Community Hangout</div>
+          <div class="srv-feat"><span>▸</span> Bug Reports & Feedback</div>
+        </div>
+        <a href="https://discord.gg/FRFUwvKpxG" target="_blank" class="btn btn-discord" style="width:100%;justify-content:center;margin-top:10px">🎮 JOIN DISCORD SERVER</a>
+        <div class="inv-code">discord.gg/FRFUwvKpxG</div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="sec-div"></div>
+
+  <!-- MUSIC -->
+  <section id="music">
+    <div class="sec-head reveal">
+      <div class="sec-tag">// VIBE OUT</div>
+      <div class="sec-title">MUSIC PLAYER</div>
+    </div>
+
+    <div class="music-wrap reveal">
+      <!-- Hidden YouTube Player -->
+      <div id="ytPlayerWrap" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;left:-9999px">
+        <div id="ytPlayer"></div>
+      </div>
+      <div class="visualizer" id="viz"></div>
+
+      <div class="player-body">
+        <div class="track-info">
+          <div class="track-now" id="playState">▶ PRESS PLAY TO START</div>
+          <div class="track-name" id="tName">ROYALITY</div>
+          <div class="track-artist" id="tArtist">Prod. Cashmoneyap · YouTube</div>
+          <div class="track-badge">✓ ROYALTY FREE — FREE TO USE</div>
+        </div>
+
+        <div class="progress-area">
+          <div class="progress-track" id="progTrack">
+            <div class="progress-fill" id="progFill"></div>
+          </div>
+          <div class="progress-times">
+            <span id="tNow">0:00</span>
+            <span id="tTot">0:00</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="ctrl-btn" id="btnRepeat" title="Repeat" onclick="toggleRepeat()" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+          </button>
+          <button class="ctrl-btn" id="btnShuffle" title="Shuffle" onclick="toggleShuffle()" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M17 4l4 4-4 4V9h-1.5c-.83 0-1.58.42-2.03 1.06L8 17H4v-2h3.3l5.47-7.94A3.994 3.994 0 0 1 15.5 5H17V2l4 4-4 4V8h-1.5c-.56 0-1.08.25-1.44.67L13.5 10l-.72-1.03A3.994 3.994 0 0 1 15.5 7H17V4z M17 15h-1.5c-.56 0-1.08-.25-1.44-.67L8 6H4V4h4.3l6.2 9.06A1.994 1.994 0 0 0 15.5 14H17v-3l4 4-4 4v-4z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Previous" onclick="prevTrack()" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+          </button>
+          <button class="play-btn" id="playBtn" onclick="togglePlay()">
+            <svg id="playIco" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button class="ctrl-btn" title="Next" onclick="nextTrack()" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm10-12v12h2V6h-2z"/></svg>
+          </button>
+        </div>
+
+        <div class="vol-row">
+          <span class="vol-icon">🔈</span>
+          <input type="range" class="vol-slider" id="vol" min="0" max="100" value="70" oninput="setVol(this.value)">
+          <span class="vol-icon">🔊</span>
+        </div>
+      </div>
+
+      <div class="track-list">
+        <div class="track-list-head">// NOW PLAYING — ROYALITY</div>
+        <div id="tList"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sec-div"></div>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="sec-head reveal">
+      <div class="sec-tag">// WHY HALES</div>
+      <div class="sec-title">FEATURES</div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card reveal">
+        <div class="feat-num">01</div><div class="feat-icon">⚡</div>
+        <div class="feat-title">LIGHTNING FAST</div>
+        <div class="feat-desc">Ultra-low latency responses. Commands execute in milliseconds. Your server deserves a bot that keeps up.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-num">02</div><div class="feat-icon">🛡</div>
+        <div class="feat-title">FULL ADMIN ACCESS</div>
+        <div class="feat-desc">Administrator permissions to handle every moderation task. Kick, ban, mute, and manage your server with ease.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-num">03</div><div class="feat-icon">🎮</div>
+        <div class="feat-title">FUN COMMANDS</div>
+        <div class="feat-desc">Games, memes, economy, levels, and entertainment commands to keep your community engaged 24/7.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-num">04</div><div class="feat-icon">🎵</div>
+        <div class="feat-title">MUSIC PLAYER</div>
+        <div class="feat-desc">Built-in music player with royalty-free tracks and a live audio visualizer. Vibe out while you browse.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-num">05</div><div class="feat-icon">🔔</div>
+        <div class="feat-title">SMART ALERTS</div>
+        <div class="feat-desc">Welcome messages, leave notifications, role assignments, and custom auto-responders for your server.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-num">06</div><div class="feat-icon">🌐</div>
+        <div class="feat-title">ALWAYS ONLINE</div>
+        <div class="feat-desc">24/7 uptime guaranteed. Hosted on reliable infrastructure so your community never misses a beat.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sec-div"></div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="sec-head reveal">
+      <div class="sec-tag">// INFO</div>
+      <div class="sec-title">ABOUT HALES</div>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>Hales is a Discord community and bot project created and maintained by <span style="color:var(--g);font-family:var(--mono)">gamer_op_ever</span>. Built with passion for the gaming community.</p>
+        <p>Whether you need a powerful moderation bot for your Discord server or just want a cool community to hang out in — Hales has you covered.</p>
+        <p>The bot is completely free to use and is continuously updated with new features and improvements based on community feedback.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">
+          <a href="https://discord.gg/FRFUwvKpxG" target="_blank" class="btn btn-outline">JOIN COMMUNITY →</a>
+          <a href="https://discord.com/api/oauth2/authorize?client_id=1482322426217103381&permissions=8&scope=bot%20applications.commands" target="_blank" class="btn btn-primary">ADD BOT ⚡</a>
+        </div>
+      </div>
+      <div class="terminal-box reveal">
+        <div class="terminal-top">
+          <div class="tdot r"></div><div class="tdot y"></div><div class="tdot gr"></div>
+          <div class="t-title">hales@terminal ~ $</div>
+        </div>
+        <div class="terminal-body">
+          <span class="tline"><span class="prompt">❯ </span>whoami</span>
+          <span class="tline"><span class="hi">gamer_op_ever</span></span>
+          <span class="tline" style="margin-top:6px"><span class="prompt">❯ </span>cat about.txt</span>
+          <span class="tline"><span class="out">Name:   <span class="hi">Hales Bot</span></span></span>
+          <span class="tline"><span class="out">Status: <span class="hi">ONLINE ✓</span></span></span>
+          <span class="tline"><span class="out">Perms:  <span class="hi">Administrator</span></span></span>
+          <span class="tline"><span class="out">Cmds:   <span class="hi">50+</span></span></span>
+          <span class="tline"><span class="out">Price:  <span class="hi">FREE</span></span></span>
+          <span class="tline" style="margin-top:6px"><span class="prompt">❯ </span>./invite</span>
+          <span class="tline"><span class="out">→ <a href="https://discord.com/api/oauth2/authorize?client_id=1482322426217103381&permissions=8&scope=bot%20applications.commands" target="_blank" style="color:var(--g);text-decoration:none">discord.com/oauth2/...</a></span></span>
+          <span class="tline" style="margin-top:6px"><span class="prompt">❯ <span class="tcursor"></span></span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="footer-logo">HALES</div>
+  <div class="footer-text">© 2025 HALES · BY gamer_op_ever · ALL RIGHTS RESERVED</div>
+  <div class="footer-links">
+    <a href="https://discord.com/api/oauth2/authorize?client_id=1482322426217103381&permissions=8&scope=bot%20applications.commands" target="_blank">ADD BOT</a>
+    <a href="https://discord.gg/FRFUwvKpxG" target="_blank">DISCORD</a>
+    <a href="#music">MUSIC</a>
+  </div>
+</footer>
+
+<script>
+/* HAMBURGER */
+const ham = document.getElementById('ham');
+const drawer = document.getElementById('drawer');
+ham.addEventListener('click', () => { ham.classList.toggle('open'); drawer.classList.toggle('open'); });
+function closeMenu() { ham.classList.remove('open'); drawer.classList.remove('open'); }
+document.addEventListener('click', e => { if (!ham.contains(e.target) && !drawer.contains(e.target)) closeMenu(); });
+
+/* PARTICLES */
+const pc = document.getElementById('particles');
+for (let i = 0; i < 26; i++) {
+  const p = document.createElement('div'); p.className = 'pt';
+  const s = Math.random()*3+1;
+  p.style.cssText = `left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${(Math.random()*12+8).toFixed(1)}s;animation-delay:${(Math.random()*15).toFixed(1)}s`;
+  pc.appendChild(p);
+}
+
+/* SCROLL REVEAL */
+const obs = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+
+
+// Build visualizer
+const vizEl = document.getElementById('viz');
+const BAR_N = 36;
+const vizBars = [];
+for (let i=0;i<BAR_N;i++) {
+  const b = document.createElement('div'); b.className='vis-bar';
+  vizEl.appendChild(b); vizBars.push(b);
+}
+
+// Build track list (single track display)
+const tListEl = document.getElementById('tList');
+(function(){
+  const d = document.createElement('div');
+  d.className = 'track-item active';
+  d.innerHTML = `<div class="ti-dot"></div><div class="ti-num">01</div><div class="ti-info"><div class="ti-name">ROYALITY</div><div class="ti-sub">Prod. Cashmoneyap · YouTube</div></div>`;
+  tListEl.appendChild(d);
+})();
+
+/* ── YOUTUBE PLAYER ENGINE ── */
+let ytPlayer = null, playing = false, rafId = null, timerIv = null;
+const YT_ID = 'oOi3oJmfz4o';
+
+// Load YouTube IFrame API
+(function(){
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(s);
+})();
+
+// Called automatically by YouTube API when ready
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('ytPlayer', {
+    videoId: YT_ID,
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      loop: 1,
+      playlist: YT_ID,
+      rel: 0,
+      iv_load_policy: 3,
+      modestbranding: 1
+    },
+    events: {
+      onReady: function(e) {
+        e.target.setVolume(70);
+        document.getElementById('tTot').textContent = '0:00';
+      },
+      onStateChange: function(e) {
+        if (e.data === YT.PlayerState.PLAYING) {
+          playing = true; updateBtn(); startVis(); startTimer();
+        } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+          playing = false; updateBtn(); stopVis(); stopTimer();
+        }
+      }
+    }
+  });
+};
+
+function togglePlay() {
+  if (!ytPlayer || typeof ytPlayer.playVideo !== 'function') {
+    document.getElementById('playState').textContent = '⏳ LOADING PLAYER...';
+    return;
+  }
+  const state = ytPlayer.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) {
+    ytPlayer.pauseVideo();
+  } else {
+    ytPlayer.playVideo();
+  }
+}
+
+function setVol(v) {
+  if (ytPlayer && typeof ytPlayer.setVolume === 'function') ytPlayer.setVolume(parseInt(v));
+}
+
+function updateBtn() {
+  const btn = document.getElementById('playBtn'), ico = document.getElementById('playIco');
+  btn.classList.toggle('playing', playing);
+  ico.innerHTML = playing
+    ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+    : '<path d="M8 5v14l11-7z"/>';
+  document.getElementById('playState').textContent = playing ? '▶ NOW PLAYING' : '▶ PRESS PLAY TO START';
+}
+
+function startTimer() {
+  stopTimer();
+  timerIv = setInterval(() => {
+    if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
+    const cur = ytPlayer.getCurrentTime() || 0;
+    const dur = ytPlayer.getDuration() || 0;
+    if (dur > 0) {
+      document.getElementById('progFill').style.width = (cur / dur * 100) + '%';
+      document.getElementById('tNow').textContent = fmt(cur);
+      document.getElementById('tTot').textContent = fmt(dur);
+    }
+  }, 500);
+}
+function stopTimer() { clearInterval(timerIv); timerIv = null; }
+
+// Click to seek
+document.getElementById('progTrack').addEventListener('click', e => {
+  if (!ytPlayer || typeof ytPlayer.getDuration !== 'function') return;
+  const r = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - r.left) / r.width;
+  ytPlayer.seekTo(pct * ytPlayer.getDuration(), true);
+});
+
+function fmt(s) {
+  if (!s || isNaN(s)) return '0:00';
+  return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+}
+
+function nextTrack(){}
+function prevTrack(){}
+function toggleShuffle(){}
+function toggleRepeat(){}
+
+/* ── VISUALIZER (animated while playing) ── */
+function startVis() {
+  if (rafId) return;
+  let t = 0;
+  (function frame() {
+    rafId = requestAnimationFrame(frame);
+    t += 0.06;
+    vizBars.forEach((b, i) => {
+      const wave = Math.sin(t * 1.8 + i * 0.35) * 0.5 + 0.5;
+      const beat = Math.abs(Math.sin(t * 2.5)) * 0.4;
+      const h = 6 + wave * 38 + beat * 20;
+      const op = 0.5 + wave * 0.5;
+      b.style.height = h + 'px';
+      b.style.opacity = op;
+    });
+  })();
+}
+function stopVis() {
+  cancelAnimationFrame(rafId); rafId = null;
+  vizBars.forEach(b => { b.style.height = '4px'; b.style.opacity = '.6'; });
+}
+
+// Idle wave animation
+(function idleWave() {
+  let t = 0;
+  (function tick() {
+    if (!playing) {
+      t += 0.03;
+      vizBars.forEach((b, i) => {
+        const h = 4 + Math.abs(Math.sin(t * .7 + i * .3) * 10);
+        b.style.height = h + 'px'; b.style.opacity = '.35';
+      });
+    }
+    setTimeout(() => requestAnimationFrame(tick), 40);
+  })();
+})();
+
+</script>
+</body>
+</html>
